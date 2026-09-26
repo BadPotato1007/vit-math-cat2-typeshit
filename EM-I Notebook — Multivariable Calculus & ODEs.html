@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EM-I Notebook — Multivariable Calculus & ODEs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#17171a; --panel:#1f1f23; --panel2:#26262b; --line:#35353c;
+  --ink:#f2f2f0; --ink-dim:#a9a9b2; --ink-faint:#6f6f78;
+  --accent:#ffffff; --accent-soft:rgba(255,255,255,.08);
+  --gold:#d7c9a3;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;height:100%;overflow:hidden}
+h1,h2,h3,.serif{font-family:'Source Serif 4',serif}
+code,.mono,.formula{font-family:'JetBrains Mono',monospace}
+::selection{background:#fff;color:#111}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#3a3a41;border-radius:6px}
+::-webkit-scrollbar-track{background:transparent}
+
+.app{display:flex;height:100vh}
+
+/* ---- sidebar ---- */
+.sidebar{width:290px;flex:none;background:var(--panel);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;transition:width .28s ease,opacity .2s ease;overflow:hidden}
+.sidebar.collapsed{width:0;border-right:none}
+.side-head{padding:22px 20px 14px;border-bottom:1px solid var(--line);flex:none}
+.side-head .mark{font-size:11px;letter-spacing:.14em;color:var(--ink-faint);margin-bottom:6px}
+.side-head h1{font-size:19px;margin:0;font-weight:600;line-height:1.25}
+.progress-wrap{margin-top:14px}
+.progress-track{height:4px;background:#333338;border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#8f8f9a,#fff);width:0%;transition:width .5s ease}
+.progress-label{font-size:11px;color:var(--ink-faint);margin-top:6px}
+.search-box{margin:14px 20px 4px}
+.search-box input{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+  padding:8px 10px;border-radius:8px;font-size:13px;font-family:inherit}
+.search-box input:focus{outline:none;border-color:#6a6a72}
+.nav{flex:1;overflow-y:auto;padding:10px 10px 20px}
+.mod{margin-bottom:6px}
+.mod-btn{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--ink);
+  text-align:left;padding:10px 10px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:600}
+.mod-btn:hover{background:var(--accent-soft)}
+.mod-dot{width:7px;height:7px;border-radius:50%;background:var(--mc,#888);flex:none}
+.mod-chev{margin-left:auto;font-size:10px;color:var(--ink-faint);transition:transform .2s}
+.mod.open .mod-chev{transform:rotate(90deg)}
+.topics{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.mod.open .topics{max-height:600px}
+.topic-btn{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;color:var(--ink-dim);
+  text-align:left;padding:7px 10px 7px 28px;border-radius:7px;cursor:pointer;font-size:13px}
+.topic-btn:hover{background:var(--accent-soft);color:var(--ink)}
+.topic-btn.active{background:#fff;color:#111;font-weight:600}
+.tick{width:14px;height:14px;border-radius:4px;border:1.4px solid var(--ink-faint);flex:none;position:relative}
+.tick.done{background:#fff;border-color:#fff}
+.tick.done::after{content:'';position:absolute;left:3.5px;top:1px;width:4px;height:8px;border:solid #111;
+  border-width:0 1.6px 1.6px 0;transform:rotate(45deg)}
+.topic-btn.active .tick{border-color:#111}
+.qbtn{margin:14px 10px 0;width:calc(100% - 20px);background:var(--panel2);border:1px solid var(--line);
+  color:var(--ink);padding:11px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;text-align:left}
+.qbtn:hover{border-color:#555}
+.qbtn.active{background:#fff;color:#111;border-color:#fff}
+
+/* ---- top bar / content ---- */
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{display:flex;align-items:center;gap:14px;padding:14px 26px;border-bottom:1px solid var(--line);flex:none}
+.burger{background:var(--panel2);border:1px solid var(--line);color:var(--ink);width:34px;height:34px;border-radius:8px;
+  cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex:none}
+.burger:hover{border-color:#666}
+.crumb{color:var(--ink-faint);font-size:13px}
+.crumb b{color:var(--ink);font-weight:600}
+.content{flex:1;overflow-y:auto;padding:40px 8vw 90px}
+.page{max-width:820px;margin:0 auto;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.page .eyebrow{color:var(--ink-faint);font-size:12.5px;margin-bottom:8px}
+.page h2{font-size:32px;margin:0 0 6px;font-weight:600}
+.page .lede{color:var(--ink-dim);font-size:15.5px;line-height:1.6;margin-bottom:30px;max-width:64ch}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:18px}
+.card h3{margin:0 0 10px;font-size:17px;font-weight:600}
+.card p{color:#d3d3d8;line-height:1.7;font-size:14.5px;margin:0 0 10px}
+.card ul{margin:0 0 8px;padding-left:20px;color:#d3d3d8;line-height:1.75;font-size:14.5px}
+.formula{background:#101012;border:1px solid var(--line);border-radius:10px;padding:14px 16px;color:#f5f0dc;
+  font-size:14.5px;margin:10px 0;overflow-x:auto;white-space:pre}
+.badge{display:inline-block;background:var(--accent-soft);border:1px solid var(--line);border-radius:20px;
+  padding:2px 10px;font-size:11px;color:var(--ink-dim);margin-bottom:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}.sidebar{position:fixed;z-index:20;height:100vh}
+  .content{padding:30px 5vw 80px}}
+.diagram{background:#101012;border:1px solid var(--line);border-radius:12px;padding:14px;margin:14px 0;text-align:center}
+.diagram svg{max-width:100%;height:auto}
+.done-btn{margin-top:6px;background:none;border:1px solid var(--line);color:var(--ink-dim);padding:9px 16px;
+  border-radius:8px;cursor:pointer;font-size:13px}
+.done-btn.on{background:#fff;color:#111;border-color:#fff;font-weight:600}
+.navrow{display:flex;justify-content:space-between;margin-top:34px;gap:12px}
+.navrow button{background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:11px 16px;
+  border-radius:9px;cursor:pointer;font-size:13.5px}
+.navrow button:hover{border-color:#666}
+
+/* summary */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.sum-card{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px}
+.sum-card h4{margin:0 0 6px;font-size:13.5px;color:#fff}
+.sum-card p{margin:0;font-size:13px;color:var(--ink-dim);line-height:1.55}
+
+/* quiz */
+.qcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:16px;overflow:hidden}
+.qhead{padding:18px 22px;cursor:pointer;display:flex;gap:14px;align-items:flex-start}
+.qnum{font-family:'JetBrains Mono',monospace;color:var(--ink-faint);font-size:13px;flex:none;padding-top:2px}
+.qtext{font-size:15px;line-height:1.55;color:var(--ink)}
+.qtag{display:inline-block;font-size:10.5px;color:var(--ink-faint);border:1px solid var(--line);border-radius:12px;
+  padding:1px 8px;margin-top:8px}
+.qbody{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.qcard.open .qbody{max-height:600px}
+.qanswer{padding:0 22px 20px 54px;color:#d6d6da;font-size:14px;line-height:1.7;border-top:1px dashed var(--line);margin-top:2px;padding-top:16px}
+.qanswer b{color:#fff}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="side-head">
+      <div class="mark">BAMAT101 · ENGINEERING MATHEMATICS I</div>
+      <h1>The Notebook</h1>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+        <div class="progress-label" id="progLabel">0 of 0 topics read</div>
+      </div>
+    </div>
+    <div class="search-box"><input id="search" placeholder="Search topics…" autocomplete="off"></div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="burger" id="toggleSide" title="Toggle sidebar">☰</button>
+      <div class="crumb" id="crumb">Loading…</div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<script>
+/* ================= DATA ================= */
+const MODULES = [
+{id:'m2',name:'Multiple Integrals',color:'#8fd0c9',
+ topics:[
+  {id:'m2-1',title:'Double Integrals & Region of Integration',body:`
+   <div class="badge">Foundations</div>
+   <p>A <b>double integral</b> extends single-variable integration to a function of two variables f(x,y) over a plane region R. Instead of area under a curve, it measures a signed <em>volume</em> under a surface.</p>
+   <div class="formula">∬<sub>R</sub> f(x,y) dA  =  ∫<sub>y₀</sub><sup>y₁</sup> ∫<sub>x₀</sub><sup>x₁</sup> f(x,y) dx dy</div>
+   <p>The <b>region of integration</b> is what the limits describe. If x runs between two curves φ₁(y) ≤ x ≤ φ₂(y) while y runs between fixed constants c and d, that inequality traces a shape in the xy-plane — sketch it first, always.</p>
+   <ul>
+    <li>Variable limits belong to the <b>inner</b> integral; constant limits go outer.</li>
+    <li>Evaluate inner-most first, treating the outer variable as a constant.</li>
+    <li>A triple integral simply repeats the idea one dimension further: ∭ f dx dy dz.</li>
+   </ul>
+   <div class="diagram"><svg viewBox="0 0 320 170" width="320">
+    <rect x="0" y="0" width="320" height="170" fill="none"/>
+    <line x1="30" y1="150" x2="300" y2="150" stroke="#555"/><line x1="30" y1="150" x2="30" y2="10" stroke="#555"/>
+    <path d="M60,150 Q150,20 260,150 Z" fill="#3a3a41" stroke="#d7c9a3" stroke-width="1.5" opacity=".8"/>
+    <text x="270" y="165" fill="#888" font-size="11">x</text><text x="12" y="20" fill="#888" font-size="11">y</text>
+    <text x="140" y="90" fill="#f2f2f0" font-size="12">Region R</text>
+   </svg><div style="color:#888;font-size:11px;margin-top:6px">A region bounded between two curves</div></div>`},
+  {id:'m2-2',title:'Change of Order of Integration',body:`
+   <div class="badge">Technique</div>
+   <p>Sometimes the inner integral has no elementary antiderivative in the order given (classic case: ∫e<sup>-y²/x</sup> type limits). <b>Redrawing the region</b> and swapping which variable is integrated first often makes it solvable.</p>
+   <div class="formula">∫<sub>0</sub><sup>a</sup> ∫<sub>x</sub><sup>a</sup> f dy dx  =  ∫<sub>0</sub><sup>a</sup> ∫<sub>0</sub><sup>y</sup> f dx dy   (triangle 0≤x≤y≤a)</div>
+   <p>Method: sketch the region → identify new horizontal/vertical strips → re-express both pairs of limits in the swapped order → integrate.</p>`},
+  {id:'m2-3',title:'Polar Coordinates',body:`
+   <div class="badge">Transformation</div>
+   <p>For circular or radially symmetric regions, x = r cos θ, y = r sin θ turns the element dx dy into <b>r dr dθ</b> — the extra factor r is the Jacobian of the transformation.</p>
+   <div class="formula">dx dy = J(x,y / r,θ) dr dθ = r dr dθ</div>
+   <p>The famous Gaussian integral trick: ∬<sub>first quadrant</sub> e<sup>−(x²+y²)</sup> dx dy becomes ∫₀<sup>π/2</sup>∫₀<sup>∞</sup> e<sup>−r²</sup> r dr dθ = π/4, from which ∫₀<sup>∞</sup> e<sup>−x²</sup> dx = √π⁄2.</p>
+   <div class="diagram"><svg viewBox="0 0 260 170" width="260">
+    <line x1="20" y1="150" x2="240" y2="150" stroke="#555"/><line x1="20" y1="150" x2="20" y2="15" stroke="#555"/>
+    <line x1="20" y1="150" x2="190" y2="45" stroke="#d7c9a3" stroke-width="1.6"/>
+    <path d="M50,150 A80,80 0 0 0 74,102" stroke="#8fd0c9" fill="none" stroke-width="1.4"/>
+    <circle cx="190" cy="45" r="3.5" fill="#fff"/>
+    <text x="195" y="42" fill="#fff" font-size="11">P(r,θ)</text>
+    <text x="58" y="140" fill="#8fd0c9" font-size="11">θ</text>
+   </svg><div style="color:#888;font-size:11px;margin-top:6px">x=r cosθ, y=r sinθ</div></div>`},
+  {id:'m2-4',title:'Triple Integrals — Cylindrical Coordinates',body:`
+   <div class="badge">3-D · symmetry about an axis</div>
+   <p>When a solid is symmetric about the z-axis (cylinders, axisymmetric tanks), use x=r cosθ, y=r sinθ, z=z. The volume element becomes r dz dr dθ.</p>
+   <div class="formula">∭<sub>M</sub> f(x,y,z) dv = ∫<sub>α</sub><sup>β</sup>∫<sub>r₁</sub><sup>r₂</sup>∫<sub>g₁</sub><sup>g₂</sup> f(r cosθ, r sinθ, z) r dz dr dθ</div>
+   <p>Recognise the pattern x²+y² ≤ a² in the limits — that is your cue to switch coordinate systems.</p>`},
+  {id:'m2-5',title:'Triple Integrals — Spherical Coordinates',body:`
+   <div class="badge">3-D · symmetry about a point</div>
+   <p>For spheres and cones centred at the origin, use ρ (distance from origin), φ (angle from +z axis) and θ (azimuth):</p>
+   <div class="formula">x=ρ sinφ cosθ,  y=ρ sinφ sinθ,  z=ρ cosφ
+dv = ρ² sinφ dρ dφ dθ</div>
+   <p>A cone z=√(x²+y²) becomes the constant φ = π/4; a sphere x²+y²+z²=a² becomes the constant ρ = a. This is what makes spherical coordinates powerful — surfaces collapse into single-variable limits.</p>
+   <div class="diagram"><svg viewBox="0 0 260 170" width="260">
+    <ellipse cx="130" cy="95" rx="95" ry="55" fill="none" stroke="#555"/>
+    <line x1="130" y1="95" x2="130" y2="15" stroke="#555"/><text x="134" y="20" fill="#888" font-size="11">z</text>
+    <line x1="130" y1="95" x2="210" y2="130" stroke="#555"/><text x="214" y="135" fill="#888" font-size="11">y</text>
+    <line x1="130" y1="95" x2="60" y2="130" stroke="#555"/><text x="40" y="140" fill="#888" font-size="11">x</text>
+    <line x1="130" y1="95" x2="200" y2="55" stroke="#8fd0c9" stroke-width="1.6"/>
+    <circle cx="200" cy="55" r="3" fill="#fff"/><text x="204" y="52" fill="#fff" font-size="11">P(ρ,φ,θ)</text>
+    <path d="M130,75 A20,20 0 0 1 148,85" stroke="#d7c9a3" fill="none"/>
+   </svg><div style="color:#888;font-size:11px;margin-top:6px">ρ, φ, θ in space</div></div>`},
+  {id:'m2-sum',title:'Module Summary',summary:true,mod:'Multiple Integrals',body:`
+   <div class="summary-grid">
+    <div class="sum-card"><h4>Cartesian doubles</h4><p>Sketch region → inner variable between curves, outer between constants.</p></div>
+    <div class="sum-card"><h4>Order swap</h4><p>Redraw region, re-derive both pairs of limits when direct order fails.</p></div>
+    <div class="sum-card"><h4>Polar</h4><p>Use for circular symmetry; dA → r dr dθ.</p></div>
+    <div class="sum-card"><h4>Cylindrical</h4><p>Axis symmetry in 3-D; dv → r dz dr dθ.</p></div>
+    <div class="sum-card"><h4>Spherical</h4><p>Point symmetry; dv → ρ² sinφ dρ dφ dθ; spheres/cones become constant-ρ / constant-φ.</p></div>
+   </div>`}
+ ]},
+{id:'m3',name:'Vector Calculus',color:'#d7c9a3',
+ topics:[
+  {id:'m3-1',title:'Gradient, Divergence & Curl',body:`
+   <div class="badge">Scalar & vector fields</div>
+   <p>A <b>scalar point function</b> φ(x,y,z) assigns a number to every point (temperature, pressure). A <b>vector point function</b> F(x,y,z) assigns a vector (velocity, force, electric field).</p>
+   <div class="formula">grad φ = ∇φ = ∂φ/∂x î + ∂φ/∂y ĵ + ∂φ/∂z k̂
+div F = ∇·F        (a scalar — measures outflow per unit volume)
+curl F = ∇×F        (a vector — measures local rotation)</div>
+   <p>F is <b>solenoidal</b> if ∇·F = 0, and <b>irrotational</b> (conservative) if ∇×F = 0. An irrotational field is always the gradient of some scalar potential.</p>`},
+  {id:'m3-2',title:'Line Integrals & Work Done',body:`
+   <div class="badge">∫ F·dr</div>
+   <p>The line integral ∫<sub>C</sub> F·dr sums the component of F along a curve C — physically, this <b>is the work done</b> by a force field moving a particle along C.</p>
+   <div class="formula">∫<sub>C</sub> F·dr = ∫<sub>C</sub> (F₁dx + F₂dy + F₃dz)</div>
+   <p>To evaluate: parametrise the curve (or substitute y=f(x) directly), reduce dr to a single variable, then integrate between the two endpoint values of that variable.</p>`},
+  {id:'m3-3',title:'Conservative & Irrotational Fields',body:`
+   <div class="badge">Path independence</div>
+   <p>If ∫<sub>C</sub> F·dr depends only on the endpoints A, B — not on which path joins them — F is a <b>conservative vector field</b>. This happens exactly when curl F = 0.</p>
+   <ul><li>Circulation ∮<sub>C</sub> F·dr around any closed curve is then zero.</li>
+   <li>Test: compute ∇×F as a determinant; if every component vanishes, the field is conservative.</li></ul>`},
+  {id:'m3-4',title:'Surface Integrals',body:`
+   <div class="badge">Flux ∬ F·n̂ ds</div>
+   <p>∬<sub>S</sub> F·n̂ ds is the <b>flux</b> of F through surface S — the rate liquid/field lines cross S. To compute it, project S onto a coordinate plane and divide by |n̂·k̂| (or î, ĵ) to convert the surface element into a plane dx dy.</p>
+   <div class="formula">∬<sub>S</sub> F·n̂ ds = ∬<sub>R</sub> F·n̂  (dx dy)/|n̂·k̂|,   n̂ = ∇φ/|∇φ|</div>
+   <p>Choose whichever coordinate plane the surface projects onto most simply (often the one the outward normal is least parallel to).</p>`},
+  {id:'m3-5',title:'Volume Integrals',body:`
+   <div class="badge">∭ f dV</div>
+   <p>The most direct 3-D integral: no projection trick needed, just successive integration in x, y, z (or cylindrical/spherical when the solid has that symmetry — see Module 2).</p>
+   <div class="formula">∭<sub>V</sub> F dV = ∭<sub>V</sub> F(x,y,z) dx dy dz</div>`},
+  {id:'m3-6',title:"Green's Theorem",body:`
+   <div class="badge">2-D · line ↔ double integral</div>
+   <p>Converts a line integral around a closed curve C into a double integral over the enclosed region R — invaluable when the boundary is easy to parametrise but the region is easy to integrate over (or vice versa).</p>
+   <div class="formula">∮<sub>C</sub> (u dx + v dy) = ∬<sub>R</sub> (∂v/∂x − ∂u/∂y) dx dy</div>
+   <p><b>Corollaries:</b> if ∂v/∂x = ∂u/∂y the line integral is path-independent; the area of R equals ½∮(x dy − y dx).</p>
+   <div class="diagram"><svg viewBox="0 0 260 140" width="260">
+    <path d="M60,110 C60,50 200,50 200,110 C200,130 60,130 60,110 Z" fill="#2a2a30" stroke="#d7c9a3" stroke-width="1.6"/>
+    <text x="120" y="90" fill="#f2f2f0" font-size="12">R</text>
+    <path d="M140,50 l6,-4 l-2,7 z" fill="#8fd0c9"/>
+    <text x="150" y="55" fill="#8fd0c9" font-size="11">C</text>
+   </svg><div style="color:#888;font-size:11px;margin-top:6px">boundary C encloses region R, anticlockwise</div></div>`},
+  {id:'m3-7',title:"Stokes' Theorem",body:`
+   <div class="badge">3-D · line ↔ surface integral</div>
+   <p>Generalises Green's theorem to space: the circulation of F around a closed curve C equals the flux of curl F through <em>any</em> surface S bounded by C.</p>
+   <div class="formula">∮<sub>C</sub> F·dr = ∬<sub>S</sub> curl F · n̂ ds</div>
+   <p>Powerful shortcut: if C lies flat in a coordinate plane, you may replace a curved surface S with the flat disk/region it bounds — the answer is identical since curl F·n̂ only needs any capping surface.</p>`},
+  {id:'m3-8',title:'Gauss Divergence Theorem',body:`
+   <div class="badge">3-D · surface ↔ volume integral</div>
+   <p>Relates the outward flux of F through a <b>closed</b> surface S to the divergence of F integrated over the enclosed volume V. It turns a (often messy, multi-face) surface integral into one triple integral.</p>
+   <div class="formula">∬<sub>S</sub> F·n̂ ds = ∭<sub>V</sub> ∇·F dv</div>
+   <p><b>Corollaries:</b> ∬ ∇u dv = ∬ n̂u ds (u scalar); ∭∇×F dv = ∬ n̂×F ds. Use it whenever a closed box/sphere/cylinder surface would otherwise need face-by-face evaluation.</p>`},
+  {id:'m3-sum',title:'Module Summary',summary:true,mod:'Vector Calculus',body:`
+   <div class="summary-grid">
+    <div class="sum-card"><h4>grad / div / curl</h4><p>Scalar field → vector (grad); vector → scalar (div); vector → vector (curl).</p></div>
+    <div class="sum-card"><h4>Line integral</h4><p>Work done along a path; conservative ⇔ curl F = 0.</p></div>
+    <div class="sum-card"><h4>Green (2-D)</h4><p>∮(u dx+v dy) = ∬(v_x−u_y) dA — boundary ↔ plane region.</p></div>
+    <div class="sum-card"><h4>Stokes (3-D)</h4><p>∮F·dr = ∬curl F·n̂ ds — boundary ↔ any capping surface.</p></div>
+    <div class="sum-card"><h4>Gauss (3-D)</h4><p>∬F·n̂ ds = ∭∇·F dv — closed surface ↔ enclosed volume.</p></div>
+    <div class="sum-card"><h4>Pick the tool</h4><p>Open curve→line integral. Closed curve, flat→Green. Closed curve, in space→Stokes. Closed surface→Gauss.</p></div>
+   </div>`}
+ ]},
+{id:'m4',name:'Ordinary Differential Equations',color:'#c9a3d7',
+ topics:[
+  {id:'m4-1',title:'Complementary Function',body:`
+   <div class="badge">(Dⁿ + a₁Dⁿ⁻¹ + … + aₙ)y = f(x)</div>
+   <p>Set f(x)=0 and D=m to get the <b>auxiliary equation</b> mⁿ+a₁mⁿ⁻¹+…+aₙ=0. Its roots decide the shape of the complementary function y<sub>c</sub>:</p>
+   <div class="formula">Real, distinct roots m₁,m₂…   →  y = Ae^(m₁x) + Be^(m₂x) + …
+Repeated root m (twice)     →  y = (Ax+B)e^(mx)
+Repeated root m (thrice)    →  y = (Ax²+Bx+C)e^(mx)
+Complex m = α±iβ            →  y = e^(αx)(A cosβx + B sinβx)</div>
+   <p>The full solution is always y = y<sub>c</sub> + y<sub>p</sub> (complementary + particular).</p>`},
+  {id:'m4-2',title:'Particular Integral — Type I: f(x)=e^(ax)',body:`
+   <div class="badge">1/φ(D) · e^(ax)</div>
+   <div class="formula">P.I. = 1/φ(D) e^(ax) = 1/φ(a) e^(ax),   provided φ(a) ≠ 0
+If φ(a)=0:  P.I. = x · 1/φ'(a) e^(ax),  provided φ'(a) ≠ 0
+If that too is 0: P.I. = x² · 1/φ''(a) e^(ax) …</div>
+   <p>In practice: substitute D→a directly. If the denominator becomes 0 (a is a root of the auxiliary equation — "failure" case), multiply by x and differentiate the denominator w.r.t. D before substituting again.</p>`},
+  {id:'m4-3',title:'Particular Integral — Type II: f(x)=sin ax or cos ax',body:`
+   <div class="badge">1/φ(D) · sin ax  (or cos ax)</div>
+   <p>Replace D² by −a² everywhere it appears. If the resulting denominator is zero, multiply the whole P.I. by x and differentiate φ(D) once (replacing D² by −a² again) — repeat if needed.</p>
+   <div class="formula">P.I. = 1/φ(D){sin ax} → replace D²→−a²
+if φ(D)=0 →  P.I. = x/φ'(D){sin ax}</div>
+   <p>When only a single D (not D²) remains in the denominator after substitution, rationalise by multiplying numerator and denominator by the conjugate, then use D(sin ax)=a cos ax, D(cos ax)=−a sin ax.</p>`},
+  {id:'m4-4',title:'Method of Undetermined Coefficients',body:`
+   <div class="badge">Alternative to the operator method</div>
+   <p>Guess a <b>trial solution</b> with unknown constants matching the shape of g(x), substitute into the ODE, and solve for the constants directly — no 1/φ(D) manipulation needed.</p>
+   <div class="formula">g(x)=e^(αx)         → try a₁e^(αx)   (×x, ×x² if α is a root, repeated root)
+g(x)=sin/cos αx     → try a₁cosαx+a₂sinαx  (×x if ±iα are roots)
+g(x)=polynomial deg n → try full degree-n polynomial (×x if 0 is a root)
+g(x)=eˣcos x (or sin) → try eˣ(a₁cosx+a₂sinx)</div>
+   <p><b>Key rule:</b> if any term of the trial solution already appears in the complementary function, multiply the whole trial solution by the lowest power of x that clears the clash.</p>
+   <div class="diagram"><svg viewBox="0 0 300 110" width="300">
+    <rect x="14" y="20" width="120" height="60" rx="10" fill="#2a2a30" stroke="#c9a3d7"/>
+    <text x="30" y="45" fill="#f2f2f0" font-size="11">Auxiliary eqn</text><text x="30" y="62" fill="#aaa" font-size="10">roots → y_c</text>
+    <rect x="166" y="20" width="120" height="60" rx="10" fill="#2a2a30" stroke="#8fd0c9"/>
+    <text x="182" y="45" fill="#f2f2f0" font-size="11">Trial y_p</text><text x="182" y="62" fill="#aaa" font-size="10">match g(x) shape</text>
+    <line x1="134" y1="50" x2="166" y2="50" stroke="#666" marker-end="url(#a)"/>
+    <defs><marker id="a" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0L8,4L0,8Z" fill="#666"/></marker></defs>
+   </svg><div style="color:#888;font-size:11px;margin-top:6px">y = y_c + y_p, always</div></div>`},
+  {id:'m4-sum',title:'Module Summary',summary:true,mod:'ODEs',body:`
+   <div class="summary-grid">
+    <div class="sum-card"><h4>Auxiliary equation</h4><p>D→m, f(x)→0. Root type fixes y_c (real/repeated/complex).</p></div>
+    <div class="sum-card"><h4>P.I. for e^(ax)</h4><p>Sub D→a; on failure multiply by x, differentiate denominator.</p></div>
+    <div class="sum-card"><h4>P.I. for sin/cos ax</h4><p>Sub D²→−a²; on failure multiply by x, differentiate, repeat.</p></div>
+    <div class="sum-card"><h4>Undetermined coefficients</h4><p>Guess trial matching g(x); bump by x on overlap with y_c.</p></div>
+   </div>`}
+ ]},
+{id:'ap',name:'Applications',color:'#a3b6d7',
+ topics:[
+  {id:'ap-1',title:'Jacobian: Sensitivity Analysis & Optimization',body:`
+   <div class="badge">Machine learning & cloud computing</div>
+   <p>The Jacobian matrix J(x) = [∂yᵢ/∂xⱼ] measures how a small change in a model's inputs propagates to its outputs — exactly the multivariable chain rule, applied at scale.</p>
+   <ul>
+    <li><b>Sensitivity analysis:</b> large entries in J flag inputs the model output is most sensitive to — used for feature importance and fault diagnosis.</li>
+    <li><b>Constrained optimisation (cloud resource allocation):</b> the Jacobian of constraint functions appears in Lagrange-multiplier / KKT conditions when minimising cost subject to capacity limits.</li>
+   </ul>`},
+  {id:'ap-2',title:'Multiple Integrals in Image Analysis',body:`
+   <div class="badge">Density, moments, object recognition</div>
+   <p>Treat pixel intensity as a scalar field ρ(x,y). Then:</p>
+   <div class="formula">Total intensity = ∬ ρ(x,y) dA
+Centroid x̄ = (∬ x ρ dA)/(∬ ρ dA),  ȳ similarly
+Second moments (spread/orientation) = ∬ x²ρ dA, ∬ y²ρ dA</div>
+   <p>Circular objects are analysed faster in <b>polar coordinates</b> (Module 2); 3-D scan volumes (MRI/CT) use cylindrical or spherical coordinates for the same reason a solid's natural symmetry simplifies the integral.</p>`},
+  {id:'ap-3',title:'Vector Calculus in CAD & Antenna Design',body:`
+   <div class="badge">Electromagnetic simulation</div>
+   <p>Maxwell's equations are written entirely in grad/div/curl. In CAD-based EM simulation, ∇·E relates to charge density and ∇×E to changing magnetic flux — the same divergence and curl from Module 3.</p>
+   <p><b>Antenna design</b> uses line integrals of the magnetic field around a loop (Ampère's law) and surface/volume integrals of radiated power — direct applications of line, surface and volume integrals.</p>`},
+  {id:'ap-4',title:'ODEs in Circuits & Signal Processing',body:`
+   <div class="badge">LCR circuits, LTI systems, flow & diffusion</div>
+   <p>An LCR series circuit obeys L(d²q/dt²) + R(dq/dt) + q/C = E(t) — a second-order linear ODE with constant coefficients, solved exactly with the complementary function + particular integral toolkit from Module 4.</p>
+   <ul>
+    <li><b>Digital signal processing:</b> the steady-state response of an LTI system to a sinusoidal input is precisely the Type-II particular integral (sin/cos forcing).</li>
+    <li><b>CPU temperature / river flow / groundwater seepage:</b> modelled by first-order linear ODEs, solved via separation of variables or the integrating-factor method built on the same auxiliary-equation logic.</li>
+   </ul>`},
+  {id:'ap-sum',title:'Module Summary',summary:true,mod:'Applications',body:`
+   <div class="summary-grid">
+    <div class="sum-card"><h4>Jacobian</h4><p>Feature sensitivity in ML; gradients in constrained cloud optimisation.</p></div>
+    <div class="sum-card"><h4>Multiple integrals</h4><p>Image density, centroid & moments; polar/cylindrical/spherical for symmetric scans.</p></div>
+    <div class="sum-card"><h4>Vector calculus</h4><p>Maxwell's equations in CAD-based EM & antenna simulation.</p></div>
+    <div class="sum-card"><h4>ODEs</h4><p>LCR circuits, LTI steady-state response, flow/diffusion modelling.</p></div>
+   </div>`}
+ ]}
+];
+
+const QUIZ = [
+ {tag:'Multiple Integrals',q:"A machine-vision pipeline must find the centroid of a roughly circular blob and, separately, the volume under a Gaussian-shaped intensity peak over the whole plane. Which coordinate systems should each task switch to, and why not stay in Cartesian?",
+  a:"For the circular blob, switch to <b>polar coordinates</b> (x=r cosθ, y=r sinθ, dA=r dr dθ) — the boundary becomes a constant-r circle, so the limits become plain constants instead of curves like √(a²−x²). For the Gaussian intensity peak spread over the whole plane, the same polar substitution is what turns the notoriously non-elementary ∬e<sup>−(x²+y²)</sup>dxdy into a solvable ∫e<sup>−r²</sup>r dr — the extra factor r from the Jacobian is exactly what makes the r-integral elementary. Cartesian coordinates would leave both problems with awkward, curve-shaped limits or an unintegrable inner integral."},
+ {tag:'Multiple Integrals',q:"You need the volume enclosed between two cones sharing an apex at the origin, capped by a sphere. One student sets it up in cylindrical coordinates, another in spherical. Whose setup finishes faster, and what does each cone equation become?",
+  a:"<b>Spherical</b> finishes faster. A cone z=k√(x²+y²) making angle φ₀ with the z-axis becomes the single constant φ=φ₀ in spherical coordinates (since tanφ=k gives a fixed angle) — the two cones simply become two constant-φ limits and the sphere becomes constant-ρ. In cylindrical coordinates the cone equation still involves both r and z (z = k·r), so the z-limits stay a function of r rather than collapsing to a constant — more algebra, same answer."},
+ {tag:'Multiple Integrals',q:"While setting up ∫₀^a∫ᵧᵃ f(x,y) dx dy, the inner integral turns out to have no elementary antiderivative in x. What is the general fix, and what must you re-derive before integrating?",
+  a:"Change the order of integration. Sketch the triangular region 0≤y≤x≤a first, then re-express it as vertical strips: x runs from 0 to a, and for each x, y runs from 0 to x. Both pairs of limits must be re-derived from the picture — swapping dx dy to dy dx without redrawing the region is the most common source of error."},
+ {tag:'Vector Calculus',q:"A force field is proposed as conservative so that a robotic arm's path-planning software can ignore the specific path and only care about start/end points. How would you verify this claim mathematically, and what physical guarantee does it give if true?",
+  a:"Compute curl F = ∇×F as a 3×3 determinant. If every component is identically zero, F is <b>irrotational</b>, hence conservative — the line integral ∫F·dr then depends only on the endpoints, and the circulation ∮F·dr around any closed loop is exactly zero. This guarantees the path-planner can choose the cheapest path with no effect on total work done, which is the entire point of the software's assumption."},
+ {tag:'Vector Calculus',q:"An engineer wants the flux of a field through a closed cube's surface. One colleague suggests computing 6 separate face integrals; another suggests one triple integral instead. Which is correct, and which theorem justifies skipping the 6 faces?",
+  a:"The <b>Gauss Divergence Theorem</b> justifies the single triple integral: ∬<sub>S</sub>F·n̂ ds = ∭<sub>V</sub> ∇·F dv. Instead of evaluating 6 separate surface integrals (each needing its own unit normal and projection), you compute one scalar divergence ∇·F and integrate it once over the solid cube's volume — almost always less work, and it is the standard reason Gauss's theorem gets reached for whenever the surface is closed."},
+ {tag:'Vector Calculus',q:"A drone's circular flight path lies flat on the ground (the xy-plane) around a no-fly zone. You are asked for the circulation of the local wind vector field around this path. Would you use Green's theorem or Stokes' theorem, and does it matter here?",
+  a:"Either works, but <b>Green's theorem</b> is the natural, simpler choice because the curve is flat in a single plane: ∮(u dx+v dy)=∬(∂v/∂x−∂u/∂y)dA reduces the problem to one double integral over the disk enclosed. Stokes' theorem, ∮F·dr=∬curl F·n̂ ds, gives the identical numeric answer here (Green's theorem is really Stokes' theorem specialised to a flat curve with n̂=k̂), but is only necessary in general when the closed curve does not lie in a single coordinate plane."},
+ {tag:'ODEs', q:"A designer models an LCR circuit's charge q(t) and finds the forcing voltage frequency exactly matches the circuit's natural (resonant) frequency. What happens to the standard Type-II particular integral method, and what does the fix reveal physically?",
+  a:"Substituting D²→−a² makes the denominator φ(D) vanish (the 'failure' case), because the forcing frequency coincides with a root of the auxiliary equation. The fix is to multiply the trial P.I. by t and differentiate the denominator before substituting again, producing a term like t·sin(at) or t·cos(at) whose amplitude <b>grows with time</b> — this is exactly the mathematical signature of <b>resonance</b>, where a system driven at its natural frequency has an unboundedly growing response."},
+ {tag:'ODEs', q:"Two candidate trial solutions are proposed for the particular integral of (D²−4D+4)y = e^(2x): a₁e^(2x), and a₁x²e^(2x). Which is correct and why does the simpler guess fail?",
+  a:"a₁x²e^(2x) is correct. The auxiliary equation m²−4m+4=0 gives the repeated root m=2,2 — so e^(2x) already appears (twice, via xe^(2x) and e^(2x)) inside the complementary function. Substituting the plain guess a₁e^(2x) makes the denominator φ(2)=0 (and even φ'(2)=0, since the root is repeated), so it cannot be a valid particular solution: it would just duplicate part of y_c. Multiplying by x² — the lowest power that clears the double clash — produces a genuinely new, valid term."},
+ {tag:'Applications', q:"A cloud-computing team wants to minimise server cost subject to a fixed total capacity constraint across data centres. Which mathematical object from this course underlies the sensitivity of the optimum to a change in the capacity limit, and why?",
+  a:"The <b>Jacobian matrix</b> (and its role inside the Lagrange-multiplier / KKT conditions). Constrained optimisation problems linearise the constraint functions using their partial derivatives — exactly the entries of a Jacobian — to determine how the optimal cost shifts as capacity limits change. This is the same ∂yᵢ/∂xⱼ sensitivity idea used for ML feature importance, just applied to cost and constraint functions instead of model outputs."},
+ {tag:'Applications', q:"A medical imaging team has a spherical tumour scan and a separate cylindrical blood-vessel scan, and needs the total mass (∭ density dV) for each. Which coordinate system should each team pick, and what mistake would cost them the most time if they stayed in Cartesian?",
+  a:"The tumour team should use <b>spherical coordinates</b> (the sphere becomes constant ρ) and the vessel team <b>cylindrical coordinates</b> (the cylinder becomes constant r) — in both cases the natural symmetry of the solid collapses one variable's limits to a constant instead of a square-root expression. Staying in Cartesian would force limits like z=√(a²−x²−y²) into every integral, dramatically increasing algebraic complexity for exactly zero benefit, since the physical shape's symmetry is being ignored rather than exploited."}
+];
+
+/* ================= STATE / RENDER ================= */
+let done = {};
+try{ done = JSON.parse(localStorage.getItem('em1-progress')||'{}'); }catch(e){ done = {}; }
+const allTopicIds = MODULES.flatMap(m=>m.topics.map(t=>t.id));
+let currentId = allTopicIds[0];
+let quizOpen = false;
+
+function saveProgress(){ try{ localStorage.setItem('em1-progress', JSON.stringify(done)); }catch(e){} }
+function updateProgressBar(){
+  const total = allTopicIds.length, got = allTopicIds.filter(id=>done[id]).length;
+  document.getElementById('progFill').style.width = (got/total*100)+'%';
+  document.getElementById('progLabel').textContent = got+' of '+total+' topics read';
+}
+
+function renderNav(filter){
+  const nav = document.getElementById('nav');
+  nav.innerHTML = '';
+  MODULES.forEach(mod=>{
+    const topics = mod.topics.filter(t=> !filter || t.title.toLowerCase().includes(filter));
+    if(filter && topics.length===0) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'mod' + ((!filter || topics.some(t=>t.id===currentId) || mod.topics.some(t=>t.id===currentId)) ? ' open':'');
+    wrap.innerHTML = `<button class="mod-btn" style="--mc:${mod.color}"><span class="mod-dot"></span>${mod.name}<span class="mod-chev">▸</span></button>
+      <div class="topics">${topics.map(t=>`<button class="topic-btn ${t.id===currentId?'active':''}" data-id="${t.id}">
+        <span class="tick ${done[t.id]?'done':''}"></span>${t.title}</button>`).join('')}</div>`;
+    wrap.querySelector('.mod-btn').onclick = ()=>{ wrap.classList.toggle('open'); };
+    wrap.querySelectorAll('.topic-btn').forEach(b=> b.onclick = ()=>{ currentId=b.dataset.id; quizOpen=false; renderNav(document.getElementById('search').value.toLowerCase()); renderContent(); });
+    nav.appendChild(wrap);
+  });
+  const qb = document.createElement('button');
+  qb.className = 'qbtn' + (quizOpen?' active':'');
+  qb.textContent = '✦ Practice Questions';
+  qb.onclick = ()=>{ quizOpen=true; renderNav(document.getElementById('search').value.toLowerCase()); renderContent(); };
+  nav.appendChild(qb);
+  updateProgressBar();
+}
+
+function findTopic(id){ for(const m of MODULES) for(const t of m.topics) if(t.id===id) return {t,m}; }
+
+function renderContent(){
+  const content = document.getElementById('content');
+  const crumb = document.getElementById('crumb');
+  if(quizOpen){
+    crumb.innerHTML = 'Practice Questions';
+    content.innerHTML = `<div class="page"><div class="eyebrow">Scenario-based · think before revealing</div>
+      <h2>Practice Questions</h2>
+      <p class="lede">These aren't recall questions — each puts a formula or theorem into a situation and asks you to reason about which tool fits and why.</p>
+      ${QUIZ.map((q,i)=>`<div class="qcard" id="qc${i}">
+        <div class="qhead"><div class="qnum">${String(i+1).padStart(2,'0')}</div>
+          <div><div class="qtext">${q.q}</div><span class="qtag">${q.tag}</span></div></div>
+        <div class="qbody"><div class="qanswer">${q.a}</div></div>
+      </div>`).join('')}
+      </div>`;
+    QUIZ.forEach((_,i)=>{ document.getElementById('qc'+i).querySelector('.qhead').onclick = ()=> document.getElementById('qc'+i).classList.toggle('open'); });
+    return;
+  }
+  const {t,m} = findTopic(currentId);
+  crumb.innerHTML = `${m.name} <span style="color:#555">›</span> <b>${t.title}</b>`;
+  const idx = allTopicIds.indexOf(currentId);
+  const prevId = allTopicIds[idx-1], nextId = allTopicIds[idx+1];
+  content.innerHTML = `<div class="page">
+    <div class="eyebrow">${m.name}</div>
+    <h2>${t.title}</h2>
+    <div class="card" style="border:none;background:transparent;padding:0;margin-bottom:6px">${t.body}</div>
+    <button class="done-btn ${done[t.id]?'on':''}" id="doneBtn">${done[t.id]?'✓ Marked as read':'Mark as read'}</button>
+    <div class="navrow">
+      <button id="prevBtn" ${!prevId?'disabled style="opacity:.35"':''}>← Previous</button>
+      <button id="nextBtn" ${!nextId?'disabled style="opacity:.35"':''}>Next →</button>
+    </div>
+  </div>`;
+  document.getElementById('doneBtn').onclick = ()=>{ done[t.id]=!done[t.id]; saveProgress(); renderNav(document.getElementById('search').value.toLowerCase()); renderContent(); };
+  if(prevId) document.getElementById('prevBtn').onclick = ()=>{ currentId=prevId; renderNav(''); renderContent(); };
+  if(nextId) document.getElementById('nextBtn').onclick = ()=>{ currentId=nextId; renderNav(''); renderContent(); };
+}
+
+document.getElementById('search').addEventListener('input', e=> renderNav(e.target.value.toLowerCase()));
+document.getElementById('toggleSide').onclick = ()=> document.getElementById('sidebar').classList.toggle('collapsed');
+
+renderNav('');
+renderContent();
+</script>
+</body>
+</html>
